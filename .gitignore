@@ -1,0 +1,24 @@
+# Credentials & Secrets 
+.env
+client_secrets.json
+mycreds.txt
+credentials/
+
+# Python & Virtual Environment
+__pycache__/
+*.pyc
+venv/
+.venv/
+env/
+
+# Airflow 
+airflow.db
+airflow.cfg
+webserver_config.py
+logs/
+
+# Jupyter & Data 
+.ipynb_checkpoints/
+*.csv
+*.json
+dataset/
