@@ -31,9 +31,14 @@ def haims_pipeline():
 
     @task
     def get_target_ids():
-        start_id = 1161550
-        stop_id = 1161559
-        return [str(i) for i in range(start_id, stop_id + 1)]
+        # List of Project_ID from "TRAM_รายงาน_RAI" GGSheet
+        return ["1110281", "1112010", "1112017", "1114136", "1112703", "1112694", 
+                "1114063", "1117833", "1117804", "1118472", "1119324", "1122696", 
+                "1125571", "1125929"]
+        
+        # start_id = 1161550
+        # stop_id = 1161559
+        # return [str(i) for i in range(start_id, stop_id + 1)]
 
     @task(max_active_tis_per_dag=5)
     def process_single_incident(pid: str):
