@@ -1,17 +1,15 @@
 from airflow.decorators import dag, task
-from airflow.models.param import Param  # นำเข้า Param เพื่อสร้าง Configuration
+from airflow.models.param import Param 
 from datetime import datetime, timedelta
 import os
+import json  
 from dotenv import load_dotenv
 
 from includes.api_client import fetch_incident_data
-from includes.gdrive_client import get_gdrive_client, upload_json_to_gdrive
 
 load_dotenv("/opt/airflow/.env") 
 
-GDRIVE_FOLDER_ID = os.getenv("GDRIVE_TARGET_FOLDER_ID")
-CREDS_PATH = os.getenv("CREDS_PATH")
-CLIENT_SECRETS_PATH = os.getenv("CLIENT_SECRETS_PATH")
+LOCAL_SAVE_DIR = os.getenv("LOCAL_SAVE_DIR")
 
 default_args = {
     'owner': 'fforfaii',
@@ -26,7 +24,7 @@ default_args = {
     schedule_interval='@daily',
     start_date=datetime(2026, 3, 26),
     catchup=False,
-    tags=['haims', 'ingestion', 'bronze_layer'],
+    tags=['haims', 'ingestion', 'bronze_layer', 'local'],
     params={
         "target_ids": Param(
             default=[
@@ -54,12 +52,18 @@ def haims_pipeline():
         if not incident_data:
             return f"Skipped: {pid} (No Data)"
             
-        drive = get_gdrive_client(CREDS_PATH, CLIENT_SECRETS_PATH)
+        # 1. ตรวจสอบและสร้างโฟลเดอร์ปลายทางถ้ายังไม่มี
+        os.makedirs(LOCAL_SAVE_DIR, exist_ok=True)
         
+        # 2. ตั้งชื่อไฟล์และสร้าง Path
         filename = f"{pid}.json"
-        upload_json_to_gdrive(drive, GDRIVE_FOLDER_ID, filename, incident_data)
+        file_path = os.path.join(LOCAL_SAVE_DIR, filename)
         
-        print(f"✅ Success: upload {filename} successfully")
+        # 3. เขียนไฟล์ JSON ลงเครื่องโดยตรง
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(incident_data, f, ensure_ascii=False, indent=4)
+        
+        print(f"✅ Success: Saved {filename} locally at {file_path}")
         return pid
 
     ids_to_process = get_target_ids()
