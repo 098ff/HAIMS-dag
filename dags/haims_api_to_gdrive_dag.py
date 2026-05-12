@@ -1,4 +1,5 @@
 from airflow.decorators import dag, task
+from airflow.models.param import Param  # นำเข้า Param เพื่อสร้าง Configuration
 from datetime import datetime, timedelta
 import os
 from dotenv import load_dotenv
@@ -26,19 +27,24 @@ default_args = {
     start_date=datetime(2026, 3, 26),
     catchup=False,
     tags=['haims', 'ingestion', 'bronze_layer'],
+    params={
+        "target_ids": Param(
+            default=[
+                "1110281", "1112010"
+            ],
+            type="array",
+            description="List of Project_ID ที่ต้องการดึงข้อมูล สามารถแก้ไขได้ตอนกด Trigger"
+        )
+    }
 )
 def haims_pipeline():
 
     @task
-    def get_target_ids():
-        # List of Project_ID from "TRAM_รายงาน_RAI" GGSheet
-        return ["1110281", "1112010", "1112017", "1114136", "1112703", "1112694", 
-                "1114063", "1117833", "1117804", "1118472", "1119324", "1122696", 
-                "1125571", "1125929"]
-        
-        # start_id = 1161550
-        # stop_id = 1161559
-        # return [str(i) for i in range(start_id, stop_id + 1)]
+    def get_target_ids(**kwargs):
+        # ดึงค่าจาก Config ที่ผู้ใช้กรอกตอนกด Trigger DAG
+        target_ids = kwargs['params'].get('target_ids', [])
+        print(f"📋 Target IDs to process: {target_ids}")
+        return target_ids
 
     @task(max_active_tis_per_dag=5)
     def process_single_incident(pid: str):
