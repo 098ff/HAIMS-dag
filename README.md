@@ -47,7 +47,7 @@ Create a `.env` file in the root of `dag_haims/` and configure the following par
 # ==========================================
 # 🌐 HAIMS API Configuration
 # ==========================================
-HAIMS_API_BASE_URL=REMOVED
+HAIMS_API_BASE_URL=<API Endpoint>
 
 # ==========================================
 # ⚙️ Airflow Docker Settings
